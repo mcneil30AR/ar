@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR.js Animation</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="arjs-container"></div>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@2.1.1/dist/ar.js"></script>
+    <script>
+        // Configuración de AR.js
+        const arToolkitContext = new THREEx.ArToolkitContext({
+            cameraParametersUrl: 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/camera_para.dat',
+            detectionMode: 'mono'
+        });
+
+        // Carga del modelo 3D animado
+        const loader = new THREE.GLTFLoader();
+        loader.load('model03.glb', (gltf) => {
+            const model = gltf.scene;
+            model.scale.set(0.1, 0.1, 0.1);
+
+            // Animación del modelo
+            const animation = gltf.animations[0];
+            const mixer = new THREE.AnimationMixer(model);
+            const action = mixer.clipAction(animation);
+            action.play();
+
+            // Agregamos el modelo a la escena
+            const scene = new THREE.Scene();
+            scene.add(model);
+
+            // Configuración de la cámara
+            const camera = new THREE.Camera();
+            camera.position.z = 5;
+
+            // Renderizado de la escena
+            const renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('arjs-container'),
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Función de renderizado
+            function render() {
+                requestAnimationFrame(render);
+                arToolkitContext.update(camera);
+                renderer.render(scene, camera);
+            }
+            render();
+        });
+    </script>
+</body>
+</html>
