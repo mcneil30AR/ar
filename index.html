@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR.js Animation</title>
+    <title>AR.js Animation with Marker Pattern</title>
     <style>
         body {
             margin: 0;
@@ -50,6 +50,15 @@
                 alpha: true
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Marker pattern
+            const markerRoot = new THREE.Group();
+            scene.add(markerRoot);
+
+            const markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+                type: 'pattern',
+                patternUrl: 'pattern-mango.patt' // Cambia por la ruta de tu marker pattern
+            });
 
             // Función de renderizado
             function render() {
