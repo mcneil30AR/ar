@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AR.js GLB Model Example</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ar.js@3.3.2/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+  <script>
+    // Initialize scene, camera, and renderer
+    var scene = new THREE.Scene();
+    var camera = new THREE.Camera();
+    scene.add(camera);
+
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '0px';
+    renderer.domElement.style.left = '0px';
+    document.body.appendChild(renderer.domElement);
+
+    // Add lighting to the scene
+    var light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(1, 1, 1).normalize();
+    scene.add(light);
+
+    var ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
+    scene.add(ambientLight);
+
+    // Initialize ARToolkitSource
+    var arToolkitSource = new THREEx.ArToolkitSource({
+      sourceType: 'webcam'
+    });
+
+    arToolkitSource.init(function onReady() {
+      onResize();
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      onResize();
+    });
+
+    function onResize() {
+      arToolkitSource.onResizeElement();
+      arToolkitSource.copyElementSizeTo(renderer.domElement);
+      if (arToolkitContext.arController !== null) {
+        arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas);
+      }
+    }
+
+    // Initialize ARToolkitContext
+    var arToolkitContext = new THREEx.ArToolkitContext({
+      cameraParametersUrl: 'https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/data/data/camera_para.dat',
+      detectionMode: 'mono'
+    });
+
+    arToolkitContext.init(function onCompleted() {
+      camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+    });
+
+    // Create an AR marker root and control
+    var markerRoot = new THREE.Group();
+    scene.add(markerRoot);
+
+    var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+      type: 'pattern',
+      patternUrl: 'https://github.com/mcneil30AR/ar/blob/main/pattern-mango.patt'
+    });
+
+    // Load GLB model
+    var loader = new THREE.GLTFLoader();
+    loader.load('model03.glb', function(gltf) {
+      var model = gltf.scene;
+      model.scale.set(0.5, 0.5, 0.5); // Adjust the scale as necessary
+      markerRoot.add(model);
+    }, undefined, function(error) {
+      console.error(error);
+    });
+
+    // Render the scene
+    var animate = function() {
+      requestAnimationFrame(animate);
+
+      if (arToolkitSource.ready !== false) {
+        arToolkitContext.update(arToolkitSource.domElement);
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+  </script>
+</body>
+</html>
